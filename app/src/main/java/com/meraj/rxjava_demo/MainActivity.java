@@ -295,7 +295,7 @@ public class MainActivity extends AppCompatActivity {
 
         source.map(i -> i * 100)
                 .doOnNext(i -> {
-                    sleep(1000);
+                    sleep(500);
                     System.out.println("Emitting " + i + " on thread " + Thread.currentThread().getName());
                 })
                 .observeOn(Schedulers.newThread())
@@ -303,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(i -> System.out.println("Received " + i + " on thread "
                         + Thread.currentThread().getName()));
 
-        sleep(3000);
+        sleep(2000);
 
         // Ex - 11: Multiple subscribers (correct: if you can subscribe at once)
         ConnectableObservable<Long> obs1 =
@@ -333,6 +333,26 @@ public class MainActivity extends AppCompatActivity {
 
         obs.subscribe((l) -> Log.i("RxJava", "1: " + l));
         obs.subscribe((l) -> Log.i("RxJava", "2: " + l));
+
+        sleep(2000);
+
+        // Error handling: onErrorReturn
+        Observable.just(1, 2, 3, 0, 4)
+                .map(i -> 12/i)
+                .onErrorReturn(error -> 99)
+                .subscribe(System.out::println);
+
+        // Error handling: onErrorResumeNext
+        Observable.just(1, 2, 3, 0, 4)
+                .map(i -> 12/i)
+                .onErrorResumeNext(observable.range(1,5))
+                .subscribe(System.out::println);
+
+        // Error handling: onExceptionResumeNext/onErrorResumeNext
+        Observable.just(1, 2, 3, 0, 4)
+                .flatMap(i -> Observable.defer(() -> Observable.just(12 / i))
+                        .onExceptionResumeNext(Observable.empty()))
+                .subscribe(System.out::println);
     }
 
 
