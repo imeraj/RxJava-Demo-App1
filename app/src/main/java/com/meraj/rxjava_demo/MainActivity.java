@@ -265,11 +265,12 @@ public class MainActivity extends AppCompatActivity {
         Observable<GitHub> githubUser = gitHubService.getGitHubUSer("imeraj");
         githubUser.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(error -> System.out.println(error.toString()))
                 .retryWhen(errors ->
                         errors.zipWith(Observable.range(1, MAX_RETRIES), (n, i) -> i)
                                 .flatMap(retryCount -> {
-                                    Log.d("RxJava", "retryCount - " + retryCount);
-                                    return Observable.timer(retryCount, TimeUnit.SECONDS);
+                                    Log.d("RxJava", "retryCount - " + retryCount) ;
+                                    return Observable.timer((long) Math.pow(2, retryCount), TimeUnit.SECONDS);
                                 })
                 )
                 .subscribe(
@@ -409,6 +410,6 @@ public class MainActivity extends AppCompatActivity {
                     sensorManager.unregisterListener(sensorListener, sensor));
 
             sensorManager.registerListener(sensorListener, sensor, periodUs);
-        },AsyncEmitter.BackpressureMode.BUFFER);
+        }, AsyncEmitter.BackpressureMode.BUFFER);
     }
 }
