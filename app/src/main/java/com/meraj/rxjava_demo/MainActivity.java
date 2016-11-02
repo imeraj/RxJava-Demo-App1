@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // ex - 1
+        // ex - 1: pre-java 8
         Log.d("RxJava", "Example 1");
         Observable.just(1, 2, 3, 4, 5, 6)
                 .filter(new Func1<Integer, Boolean>() {
@@ -54,17 +54,17 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(new Subscriber<Double>() {
                     @Override
                     public void onCompleted() {
-                        Log.d("RxJava", "Sequence complete");
+                        Log.d("RxJava-ex1", "Sequence complete");
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.e("RxJava", "Error found");
+                        Log.e("RxJava-ex1", "Sequence error");
                     }
 
                     @Override
                     public void onNext(Double val) {
-                        Log.d("RxJava", "Event: " + val);
+                        Log.d("RxJava-ex1", "Sqrt val: " + val);
                     }
                 });
 
@@ -72,35 +72,37 @@ public class MainActivity extends AppCompatActivity {
         Log.d("RxJava", "Example 2");
         Observable.just(1, 2, 3, 4, 5, 6)
                 .subscribeOn(Schedulers.computation())
-                .filter((i) -> {
-                    Log.d("RxJava", "filter thread enter: " + Utils.getThreadName());
+                .filter(i -> {
+                    Log.d("RxJava-ex2", "filter thread: " + Utils.getThreadName());
                     return (i % 2) == 1;
                 })
-                .map((i) -> Math.sqrt(i))
+                .map(i -> Math.sqrt(i))
                 .observeOn(Schedulers.newThread())
                 .subscribe(
                         (val) -> {
-                            Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
-                            Log.d("RxJava", "Event: " + val);
+                            Log.d("RxJava-ex2", "onNext thread: " + Utils.getThreadName());
+                            Log.d("RxJava-ex2", "Sqrt val: " + val);
                         },
-                        (t) -> {
+                        (error) -> {
+                                Log.d("RxJava-ex2", "Sequence error");
                         },
                         () -> {
+                            Log.d("RxJava-ex2", "Sequence complete");
                             synchronized (this) {
                                 notifyAll();
                             }
                         }
                 );
+
         synchronized (this) {
             try {
                 wait();
-            } catch (InterruptedException e) {
-            }
+            } catch (InterruptedException e) {}
         }
 
         // ex -3:
         Log.d("RxJava", "Example 3");
-        Log.d("RxJava", "Current Thread - " + Utils.getThreadName());
+        Log.d("RxJava-ex3", "Current Thread - " + Utils.getThreadName());
 
         Observable<Integer> observable = Observable.just(1, 2, 3, 4, 5, 6);
         observable
@@ -108,17 +110,16 @@ public class MainActivity extends AppCompatActivity {
                 .subscribe(
                         // onNext
                         (i) -> {
-                            Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
-                            Log.d("RxJava", "Val: " + i);
-                            Log.d("RxJava", "onNext thread exit: " + Utils.getThreadName());
+                            Log.d("RxJava-ex3", "onNext thread: " + Utils.getThreadName());
+                            Log.d("RxJava-ex3", "Val: " + i);
                         },
                         // onError
                         (t) -> {
-                            t.printStackTrace();
+                            Log.d("RxJava-ex3", "Sequence error");
                         },
                         // onCompleted
                         () -> {
-                            Log.d("RxJava", "Completed Sequence");
+                            Log.d("RxJava-ex3", "Sequence complete");
                             synchronized (this) {
                                 notifyAll();
                             }
@@ -128,32 +129,28 @@ public class MainActivity extends AppCompatActivity {
         synchronized (this) {
             try {
                 wait();
-            } catch (InterruptedException e) {
-            }
+            } catch (InterruptedException e) {}
         }
 
 
         // ex -4:
         Log.d("RxJava", "Example 4");
-        Log.d("RxJava", "Current Thread - " + Utils.getThreadName());
+        Log.d("RxJava-ex4", "Current Thread - " + Utils.getThreadName());
 
         Observable<Integer> observable1 = Observable.just(1, 2, 3, 4, 5, 6);
         observable1
                 .observeOn(Schedulers.computation())
                 .subscribe(
-                        // onNext
                         (i) -> {
-                            Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
-                            Log.d("RxJava", "Val: " + i);
-                            Log.d("RxJava", "onNext thread exit: " + Utils.getThreadName());
+                            Log.d("RxJava-ex4", "onNext thread: " + Utils.getThreadName());
+                            Log.d("RxJava-ex4", "Val: " + i);
                         },
                         // onError
                         (t) -> {
-                            t.printStackTrace();
+                            Log.d("RxJava-ex4", "Sequence error");
                         },
-                        // onCompleted
                         () -> {
-                            Log.d("RxJava", "Completed Sequence");
+                            Log.d("RxJava-ex4", "Sequence complete");
                             synchronized (this) {
                                 notifyAll();
                             }
@@ -163,100 +160,59 @@ public class MainActivity extends AppCompatActivity {
         synchronized (this) {
             try {
                 wait();
-            } catch (InterruptedException e) {
-            }
+            } catch (InterruptedException e) {}
         }
 
-        // ex - 5:
+        // ex -5:
         Log.d("RxJava", "Example 5");
-        Log.d("RxJava", "Current Thread - " + Utils.getThreadName());
-
-        Observable<Integer> observable2 = Observable.just(1, 2, 3, 4, 5, 6);
-        observable2
-                .filter((i) -> (i % 2) == 1)
-                .subscribe(
-                        // onNext
-                        (i) -> {
-                            Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
-                            Log.d("RxJava", "Val: " + i);
-                            Log.d("RxJava", "onNext thread exit: " + Utils.getThreadName());
-                        },
-                        // onError
-                        (t) -> {
-                            t.printStackTrace();
-                        },
-                        // onCompleted
-                        () -> {
-                            Log.d("RxJava", "Completed Sequence");
-                        }
-                );
-
-
-        // ex -6:
-        Log.d("RxJava", "Example 6");
-        Log.d("RxJava", "Current Thread - " + Utils.getThreadName());
+        Log.d("RxJava-ex5", "Current Thread - " + Utils.getThreadName());
 
         UserService service = new UserService();
-
-        Log.d("RxJava", " { \"userList\" : [ ");
 
         Observable.from(service.fetchUserList())
                 .flatMap((val) -> Observable.just(val)
                         .subscribeOn(Schedulers.computation())
-                        .filter((user) -> user.getSecurityStatus() != UserSecurityStatus.ADMINISTRATOR)
-
+                        .filter((user) -> {
+                            Log.d("RxJava-ex5", "filter thread: " + Utils.getThreadName());
+                            return user.getSecurityStatus() != UserSecurityStatus.ADMINISTRATOR;
+                        })
                 )
                 .toSortedList((user1, user2) -> {
                     return Integer.valueOf(user1.getSecurityStatus()).compareTo(Integer.valueOf(user2.getSecurityStatus()));
                 })
-                .observeOn(Schedulers.io())
+                .observeOn(Schedulers.io()) // try subscribeOn()
                 .subscribe(
                         (userList) -> {
-                            Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
+                            Log.d("RxJava-ex5", "onNext thread: " + Utils.getThreadName());
                             for (User user : userList) {
-                                Log.d("RxJava", "[ " + user.getUserName() + " " + user.getSecurityStatus() + " ]");
+                                Log.d("RxJava-ex5", "[ " + user.getUserName() + " " + user.getSecurityStatus() + " ]");
                             }
-                            Log.d("RxJava", "onNext thread exit: " + Utils.getThreadName());
-
                         },
                         (t) -> {
-
+                            Log.d("RxJava-ex5", "Sequence error");
                         },
                         () -> {
+                            Log.d("RxJava-ex5", "Sequence complete");
                             synchronized (this) {
                                 notifyAll();
                             }
                         }
                 );
 
-        synchronized (this) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-            }
+            synchronized (this) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {}
         }
 
-        Log.d("RxJava", " ] } ");
-
-        // Ex -7: convert synchronous APIs to Observables
-        Log.d("RxJava", "Example 7");
-        fetchContents(service)
-                .observeOn(Schedulers.newThread())
-                .subscribe((userList) -> {
-                    Log.d("RxJava", "onNext thread enter: " + Utils.getThreadName());
-
-                    for (User user : userList) {
-                        Log.d("RxJava", "[ " + user.getUserName() + " " + user.getSecurityStatus() + " ]");
-                    }
-
-                    Log.d("RxJava", "onNext thread exit: " + Utils.getThreadName());
-
-                });
-
-
-        // Ex -8: Retrofit 2
+        // Ex -6: Retrofit 2
+        Log.d("RxJava", "Example 6");
         Retrofit retrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                /**
+                 * Returns an instance which creates synchronous observables that do not operate on any scheduler
+                 * by default.
+                 */
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl("https://api.gitHub.com/")
                 .build();
@@ -264,83 +220,70 @@ public class MainActivity extends AppCompatActivity {
         GitHubService gitHubService = retrofit.create(GitHubService.class);
         Observable<GitHub> githubUser = gitHubService.getGitHubUSer("imeraj");
         githubUser.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(error -> System.out.println(error.toString()))
+                .doOnError(error -> Log.d("RxJava-ex6", error.toString()))
                 .retryWhen(errors ->
                         errors.zipWith(Observable.range(1, MAX_RETRIES), (n, i) -> i)
                                 .flatMap(retryCount -> {
-                                    Log.d("RxJava", "retryCount - " + retryCount) ;
+                                    Log.d("RxJava-ex6", "retryCount - " + retryCount) ;
                                     return Observable.timer((long) Math.pow(2, retryCount), TimeUnit.SECONDS);
                                 })
                 )
                 .subscribe(
                         (user) -> {
-                            Log.d("RxJava", "Github username: " + user.getLogin() + "\nid:" + " " + user.getId());
+                            Log.d("RxJava-ex6", "onNext thread: " + Utils.getThreadName());
+                            Log.d("RxJava-ex6", "Github username: " + user.getLogin() + "\nid:" + " " + user.getId());
                         },
                         (error) -> {
-                            Log.e("RxJava", "Error - " + error.getMessage());
+                            Log.e("RxJava-ex6", "Sequence error");
                         },
                         () -> {
-                            Log.d("RxJava", "GitHub completed");
+                            Log.d("RxJava-ex6", "Sequence complete");
+                            synchronized (this) {
+                                notifyAll();
+                            }
                         }
                 );
 
-        sleep(3000);
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {}
+        }
 
-        // Ex -9: convert asynchronous APIs to Observables
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-
-        // Ex - 10: one emission at a time to observer
-        Observable<Integer> source = Observable.range(1, 10);
-
-        source.map(i -> i * 100)
-                .doOnNext(i -> {
-                    sleep(500);
-                    System.out.println("Emitting " + i + " on thread " + Thread.currentThread().getName());
-                })
-                .observeOn(Schedulers.newThread())
-                .map(i -> i * 10)
-                .subscribe(i -> System.out.println("Received " + i + " on thread "
-                        + Thread.currentThread().getName()));
-
-        sleep(2000);
-
-        // Ex - 11: Multiple subscribers (correct: if you can subscribe at once)
+        // Ex - 7: Multiple subscribers (correct: if you can subscribe at once)
         ConnectableObservable<Long> obs1 =
                 Observable.fromCallable(() -> System.nanoTime())
                         .publish();
 
-        obs1.subscribe((l) -> Log.i("RxJava", "1: " + l));
-        obs1.subscribe((l) -> Log.i("RxJava", "2: " + l));
+        obs1.subscribe((l) -> Log.i("RxJava-ex7", "1: " + l));
+        obs1.subscribe((l) -> Log.i("RxJava-ex7", "2: " + l));
 
         obs1.connect();
 
-        // Ex - 12: Multiple subscribers (incorrect)
+        // Ex - 8: Multiple subscribers (incorrect)
         Observable<Long> obs2 =
                 Observable.fromCallable(() -> System.nanoTime())
                         .publish()
                         .refCount();
 
-        obs2.subscribe((l) -> Log.i("RxJava", "1: " + l));
-        obs2.subscribe((l) -> Log.i("RxJava", "2: " + l));
+        obs2.subscribe((l) -> Log.i("RxJava-ex8", "1: " + l));
+        obs2.subscribe((l) -> Log.i("RxJava-ex8", "2: " + l));
 
-        // Ex - 13: Multiple subscribers (correct)
+        // Ex - 9: Multiple subscribers (correct)
         Observable<Long> obs =
                 Observable.fromCallable(() -> System.nanoTime())
                         .share()
-                        .replay()
+                        .replay()  // .share().replay() --> .publish()
                         .autoConnect();
 
-        obs.subscribe((l) -> Log.i("RxJava", "1: " + l));
-        obs.subscribe((l) -> Log.i("RxJava", "2: " + l));
+        obs.subscribe((l) -> Log.i("RxJava-ex9", "1: " + l));
+        obs.subscribe((l) -> Log.i("RxJava-ex9", "2: " + l));
 
-        sleep(2000);
 
         // Error handling: onErrorReturn
         Observable.just(1, 2, 3, 0, 4)
                 .map(i -> 12/i)
-                .onErrorReturn(error -> 99)
+                .onErrorReturn(error -> -1)
                 .subscribe(System.out::println);
 
         // Error handling: onErrorResumeNext
@@ -349,46 +292,33 @@ public class MainActivity extends AppCompatActivity {
                 .onErrorResumeNext(observable.range(1,5))
                 .subscribe(System.out::println);
 
-        // Error handling: onExceptionResumeNext/onErrorResumeNext
-        Observable.just(1, 2, 3, 0, 4)
-                .flatMap(i -> Observable.defer(() -> Observable.just(12 / i))
-                        .onExceptionResumeNext(Observable.empty()))
-                .subscribe(System.out::println);
+        // put example for resuming original observable
+
+
+        // Ex -10: convert asynchronous APIs to Observables
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
-
-    private static void sleep(int millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    protected void onResume() {
+        super.onResume();
+        sensorChangedSubscription = observerSernsorChanged(sensorManager, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
+                .subscribe(
+                        (sensorEvent) -> {
+                            Log.d("RxJava-ex10", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
+                        },
+                        (sensorError) -> {
+                            Log.e("RxJava-ex10", "Sensor Error");
+                        },
+                        () -> {
+                        }
+                );
     }
 
-//    protected void onResume() {
-//        super.onResume();
-//        sensorChangedSubscription = observerSernsorChanged(sensorManager, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
-//                .subscribe(
-//                        (sensorEvent) -> {
-//                            Log.d("RxJava", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
-//                        },
-//                        (sensorError) -> {
-//                            Log.e("RxJava", "Sensor Error");
-//                        },
-//                        () -> {
-//                        }
-//                );
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        sensorChangedSubscription.unsubscribe();
-//    }
-
-    public Observable<List<User>> fetchContents(final UserService service) {
-        Log.d("RxJava", "fetchContents thread enter: " + Utils.getThreadName());
-        return Observable.fromCallable(() -> service.fetchUserList());
+    @Override
+    protected void onPause() {
+        super.onPause();
+        sensorChangedSubscription.unsubscribe();
     }
 
     public Observable<SensorEvent> observerSernsorChanged(final SensorManager sensorManager, final Sensor sensor, final int periodUs) {
