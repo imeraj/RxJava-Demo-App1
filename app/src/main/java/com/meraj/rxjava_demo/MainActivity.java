@@ -292,8 +292,16 @@ public class MainActivity extends AppCompatActivity {
                 .onErrorResumeNext(observable.range(1,5))
                 .subscribe(System.out::println);
 
-        // put example for resuming original observable
-
+        // Error handling: resume original observable
+        Observable.just(1, 2, 3, 0, 4)
+                .flatMap(i -> {
+                    try {
+                        return Observable.just((12 / i));
+                    } catch (Throwable t) {
+                        return Observable.empty();
+                    }
+                })
+                .subscribe(System.out::println);
 
         // Ex -10: convert asynchronous APIs to Observables
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
