@@ -7,6 +7,8 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Subscription sensorChangedSubscription;
+    private RxBus rxBus;
 
     private final int MAX_RETRIES = 3;
 
@@ -35,6 +38,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        rxBus = new RxBus();
+
+        Button button = (Button) findViewById(R.id.btn_rxBus);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+               rxBus.send(System.nanoTime());
+            }
+        });
 
         // ex - 1: pre-java 8
         Log.d("RxJava", "Example 1");
@@ -310,15 +322,29 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onResume() {
         super.onResume();
-        sensorChangedSubscription = observerSernsorChanged(sensorManager, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
+//        sensorChangedSubscription = observerSernsorChanged(sensorManager, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
+//                .subscribe(
+//                        (sensorEvent) -> {
+//                            Log.d("RxJava-ex10", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
+//                        },
+//                        (sensorError) -> {
+//                            Log.e("RxJava-ex10", "Sensor Error");
+//                        },
+//                        () -> {
+//                        }
+//                );
+
+        rxBus.toObserverable()
+              .subscribe(
+                      (event) -> {
+                        Log.i("RxBus", "Tap S1! - "  + event);
+                      }
+              );
+
+        rxBus.toObserverable()
                 .subscribe(
-                        (sensorEvent) -> {
-                            Log.d("RxJava-ex10", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
-                        },
-                        (sensorError) -> {
-                            Log.e("RxJava-ex10", "Sensor Error");
-                        },
-                        () -> {
+                        (event) -> {
+                            Log.i("RxBus", "Tap S2! - " + event);
                         }
                 );
     }
@@ -326,7 +352,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        sensorChangedSubscription.unsubscribe();
+        // sensorChangedSubscription.unsubscribe();
     }
 
     public Observable<SensorEvent> observerSernsorChanged(final SensorManager sensorManager, final Sensor sensor, final int periodUs) {
