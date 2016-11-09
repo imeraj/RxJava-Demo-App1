@@ -9,9 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Retrofit;
@@ -231,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
 
         GitHubService gitHubService = retrofit.create(GitHubService.class);
         Observable<GitHub> githubUser = gitHubService.getGitHubUSer("imeraj");
-        githubUser.subscribeOn(Schedulers.newThread())
+        githubUser.subscribeOn(Schedulers.io()) // try with AndroidSchedulers.mainThread()
                 .doOnError(error -> Log.d("RxJava-ex6", error.toString()))
                 .retryWhen(errors ->
                         errors.zipWith(Observable.range(1, MAX_RETRIES), (n, i) -> i)
@@ -256,11 +253,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                 );
 
-        synchronized (this) {
-            try {
-                wait();
-            } catch (InterruptedException e) {}
-        }
+
+
 
         // Ex - 7: Multiple subscribers (correct: if you can subscribe at once)
         ConnectableObservable<Long> obs1 =
@@ -272,24 +266,15 @@ public class MainActivity extends AppCompatActivity {
 
         obs1.connect();
 
-        // Ex - 8: Multiple subscribers (incorrect)
-        Observable<Long> obs2 =
-                Observable.fromCallable(() -> System.nanoTime())
-                        .publish()
-                        .refCount();
-
-        obs2.subscribe((l) -> Log.i("RxJava-ex8", "1: " + l));
-        obs2.subscribe((l) -> Log.i("RxJava-ex8", "2: " + l));
-
-        // Ex - 9: Multiple subscribers (correct)
+        // Ex - 8: Multiple subscribers (correct)
         Observable<Long> obs =
                 Observable.fromCallable(() -> System.nanoTime())
                         .share()
                         .replay()  // .share().replay() --> .publish()
                         .autoConnect();
 
-        obs.subscribe((l) -> Log.i("RxJava-ex9", "1: " + l));
-        obs.subscribe((l) -> Log.i("RxJava-ex9", "2: " + l));
+        obs.subscribe((l) -> Log.i("RxJava-ex8", "1: " + l));
+        obs.subscribe((l) -> Log.i("RxJava-ex8", "2: " + l));
 
 
         // Error handling: onErrorReturn
@@ -315,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .subscribe(System.out::println);
 
-        // Ex -10: convert asynchronous APIs to Observables
+        // Ex -9: convert asynchronous APIs to Observables
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
@@ -325,10 +310,10 @@ public class MainActivity extends AppCompatActivity {
 //        sensorChangedSubscription = observerSernsorChanged(sensorManager, accelerometer, SensorManager.SENSOR_DELAY_FASTEST)
 //                .subscribe(
 //                        (sensorEvent) -> {
-//                            Log.d("RxJava-ex10", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
+//                            Log.d("RxJava-ex9", "sensorEvent.timestamp=" + sensorEvent.timestamp + ", sensorEvent.values=" + Arrays.toString(sensorEvent.values));
 //                        },
 //                        (sensorError) -> {
-//                            Log.e("RxJava-ex10", "Sensor Error");
+//                            Log.e("RxJava-ex9", "Sensor Error");
 //                        },
 //                        () -> {
 //                        }

@@ -1,13 +1,9 @@
 package com.meraj.rxjava_demo;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by meraj on 18/09/16.
- */
 public class UserService {
     private final ArrayList<User> allUsers;
 
