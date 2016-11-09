@@ -253,8 +253,11 @@ public class MainActivity extends AppCompatActivity {
                         }
                 );
 
-
-
+        synchronized (this) {
+            try {
+                wait();
+            } catch (InterruptedException e) {}
+        }
 
         // Ex - 7: Multiple subscribers (correct: if you can subscribe at once)
         ConnectableObservable<Long> obs1 =
